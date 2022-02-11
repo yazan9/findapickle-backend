@@ -39,7 +39,7 @@ public class UsersController {
     private UsersService usersService;
 
     @PostMapping(path="/login")
-    public @ResponseBody ResponseEntity<?> EmailLogin(@RequestBody JwtRequest authenticationRequest) throws Exception
+    public @ResponseBody ResponseEntity<?> login(@RequestBody JwtRequest authenticationRequest) throws Exception
     {
         doAuthenticate(authenticationRequest.getEmail(), authenticationRequest.getPassword());
         final UserEntity userDetails = usersRepository.findByEmail(authenticationRequest.getEmail()).orElseThrow(() -> new EntityNotFoundException(authenticationRequest.getEmail(), "User"));
@@ -48,9 +48,9 @@ public class UsersController {
     }
 
     @RequestMapping(path = "/register", method = RequestMethod.POST)
-    public @ResponseBody ResponseEntity<?> register(@RequestBody User user) throws Exception {
+    public @ResponseBody ResponseEntity<?> register(@RequestHeader("Authorization") String token, @RequestBody User user) throws Exception {
         try {
-            UserEntity savedUser = usersService.save(user);
+            UserEntity savedUser = usersService.save(token, user);
             doAuthenticate(user.getEmail(), user.getPassword());
             final UserEntity userDetails = usersRepository.findByEmail(savedUser.getEmail()).orElseThrow(() -> new EntityNotFoundException(user.getEmail(), "User"));
             final String accessToken = jwtTokenUtil.generateToken(userDetails);
